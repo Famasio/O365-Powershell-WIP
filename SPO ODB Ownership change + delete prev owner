@@ -1,0 +1,28 @@
+#$OrganizationName = "<Input your organization name for SPO, like https://mytestorganization-admin.sharepoint.com>"
+#$User = "<Input login of user you want to remove ODB for>"
+
+<#=================================================================================================================#>
+
+if ($Global:FuntionRun = $null) {
+$Cred = Get-Credential
+
+Install-Module MsOnline -ErrorAction Stop
+Install-Module Microsoft.Online.SharePoint.PowerShell -ErrorAction Stop
+
+Import-Module MSOnline -ErrorAction Stop
+Import-Module Microsoft.Online.SharePoint.PowerShell -ErrorAction Stop
+
+Connect-MsolService –Credential $Cred  -ErrorAction Stop
+Connect-SPOService -Url https://$OrganizationName-admin.sharepoint.com -Credential $Cred -ErrorAction Stop
+
+$Global:FunctionRun = $True
+}
+else {}
+
+write-host "Pulling targeted user's OneDrive Site" -ForegroundColor Cyan
+$SPOSite = Get-SPOSite -IncludePersonalSite:$true -Limit ALL |Where {$_.Url -like "*personal*" -and $_.owner -like "*$User*"}
+
+write-host "Removing the ODB Sharepoint Site" -ForegroundColor Yellow
+Remove-SPOUser -Site $($SPOSite.url) -LoginName $User
+
+write-host "Script over"
